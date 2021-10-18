@@ -14,7 +14,7 @@ object UpdateCheckerGenerator {
   
   def generateUpdateChecker(projectId: Int, cache: FileCache): (String, JsonObject) = {
     val slug = CurseAPI.slug(projectId)
-    println("Generating version checker for " + slug)
+    System.err.println("Generating version checker for " + slug)
 
     val filesSorted = CurseAPI.files(projectId, cache).sortBy(_.date)(Ordering[LocalDateTime].reverse)
     val allGameVersions = filesSorted.flatMap(_.gameVersions).toSet
