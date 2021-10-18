@@ -42,6 +42,7 @@ object CurseAPI {
   private def normalizeText(str: String): String = {
     val theStr = if (str.startsWith("\"") && str.endsWith("\"")) str.substring(1, str.length - 1) else str
     StringEscapeUtils.unescapeJava(theStr).replace("\r", "").replaceAll("\\n+", "\n").strip()
+      .map(chr => if (chr.isWhitespace && chr != '\n') ' ' else chr).replaceAll(" +", " ")
   }
 
   private def query(endpoint: String): JsonElement = query(endpoint, reader => Util.GSON.fromJson(reader, classOf[JsonElement]))

@@ -8,7 +8,7 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 object FileCache {
-  val VERSION: Int = 1
+  val VERSION: Int = 2
 }
 
 class FileCache {
