@@ -4,11 +4,12 @@ import com.google.gson.{JsonArray, JsonElement, JsonObject}
 import com.moandjiezana.toml.Toml
 import io.github.noeppi_noeppi.tools.cfupdatechecker.Util
 import io.github.noeppi_noeppi.tools.cfupdatechecker.cache.FileCache
-import io.github.noeppi_noeppi.tools.cfupdatechecker.curse.CurseFile
+import io.github.noeppi_noeppi.tools.cursewrapper.api.response.FileInfo
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.tree.ClassNode
 
 import java.io.{BufferedReader, ByteArrayInputStream, InputStreamReader, StringReader}
+import java.net.URL
 import java.util.zip.ZipInputStream
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
@@ -26,8 +27,8 @@ object VersionResolver {
   )
   private val FILE_NAMES = FILE_RESOLVERS.map(_._1).toSet
   
-  def getVersion(file: CurseFile, cache: FileCache): Option[String] = {
-    val resolved = cache.version(file.projectId, file.fileId, {
+  def getVersion(file: FileInfo, cache: FileCache): Option[String] = {
+    val resolved = cache.version(file.projectId(), file.fileId(), {
       try {
         getVersionFromMetadata(file)
       } catch {
@@ -43,11 +44,10 @@ object VersionResolver {
     }
   }
   
-  private def getVersionFromMetadata(file: CurseFile): String = {
-    val zin = new ZipInputStream(file.downloadURL().openStream())
+  private def getVersionFromMetadata(file: FileInfo): String = {
+    val zin = new ZipInputStream(downloadURL(file).openStream())
     val dataMap = mutable.Map[String, Array[Byte]]()
     var entry = zin.getNextEntry
-    var manifest: Option[String] = None
     while (entry != null) {
       val name = if (entry.getName.startsWith("/")) entry.getName.substring(1) else entry.getName
       if (FILE_NAMES.contains(name)) dataMap(name) = zin.readAllBytes()
@@ -67,6 +67,8 @@ object VersionResolver {
     }
     throw new RuntimeException("Failed to resolve version for file " + file, storedEx)
   }
+
+  def downloadURL(file: FileInfo): URL = new URL("https://www.cursemaven.com/curse/maven/O-" + file.projectId() + "/" + file.fileId() + "/O-" + file.projectId() + "-" + file.fileId() + ".jar")
   
   private def versionFromToml(file: String): Option[String] = {
     val toml = new Toml().read(new StringReader(file))
