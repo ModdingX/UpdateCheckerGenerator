@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     implementation 'org.scala-lang:scala-library:2.13.6'
-    implementation 'io.github.noeppi_noeppi.tools:CurseWrapper:0.2'
+    implementation 'io.github.noeppi_noeppi.tools:CurseWrapper:0.3'
     implementation 'org.apache.commons:commons-text:1.9'
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
