@@ -16,8 +16,7 @@ object Main extends App {
   val specDir = options.acceptsAll(List("d", "dir", "directory").asJava, "Output directory.").withRequiredArg().withValuesConvertedBy(new PathConverter())
   val specCache = options.acceptsAll(List("f", "cache").asJava, "Cache file to use.").withRequiredArg().withValuesConvertedBy(new PathConverter())
   val set = try {
-//    options.parse(args: _*)
-    options.parse("-c", "/home/tux/dev/util/CfUpdateChecker/test.txt", "-d", "/home/tux/dev/util/CfUpdateChecker/test", "-f", "/home/tux/dev/util/CfUpdateChecker/cache.json")
+    options.parse(args: _*)
   } catch {
     case e: OptionException => System.err.println("Option exception: " + e.getMessage); options.printHelpOn(System.err); Util.exit(0)
   }
