@@ -5,14 +5,14 @@ import com.moandjiezana.toml.Toml
 import io.github.noeppi_noeppi.tools.cfupdatechecker.Util
 import io.github.noeppi_noeppi.tools.cfupdatechecker.cache.FileCache
 import io.github.noeppi_noeppi.tools.cursewrapper.api.response.FileInfo
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.tree.ClassNode
 
-import java.io.{BufferedReader, ByteArrayInputStream, InputStreamReader, StringReader}
+import java.io.{BufferedReader, ByteArrayInputStream, IOException, InputStreamReader, StringReader}
+import java.lang.module.{InvalidModuleDescriptorException, ModuleDescriptor}
 import java.net.URL
 import java.util.zip.ZipInputStream
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 import scala.util.matching.Regex
 
 object VersionResolver {
@@ -101,11 +101,15 @@ object VersionResolver {
   }
   
   private def versionFromModule(file: Array[Byte]): Option[String] = {
-    val cls = new ClassReader(file)
-    val node = new ClassNode()
-    cls.accept(node, 0)
-    if (node.module == null || node.module.version == null) return None
-    Some(node.module.version)
+    val module = try {
+      val in = new ByteArrayInputStream(file)
+      val m = ModuleDescriptor.read(in)
+      in.close()
+      Some(m)
+    } catch {
+      case _: IOException | _: InvalidModuleDescriptorException => None
+    }
+    module.flatMap(_.version().toScala).map(_.toString)
   }
 
   private def text(func: String => Option[String]): Array[Byte] => Option[String] = {
