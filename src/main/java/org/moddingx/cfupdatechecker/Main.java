@@ -1,7 +1,6 @@
 package org.moddingx.cfupdatechecker;
 
 import com.google.gson.JsonObject;
-import io.github.noeppi_noeppi.tools.cursewrapper.api.CurseWrapper;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -10,6 +9,7 @@ import joptsimple.util.PathConverter;
 import joptsimple.util.PathProperties;
 import org.apache.commons.lang3.tuple.Pair;
 import org.moddingx.cfupdatechecker.cache.FileCache;
+import org.moddingx.cursewrapper.api.CurseWrapper;
 
 import java.io.IOException;
 import java.io.Writer;

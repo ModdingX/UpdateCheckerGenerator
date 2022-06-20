@@ -2,15 +2,15 @@ package org.moddingx.cfupdatechecker;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
-import io.github.noeppi_noeppi.tools.cursewrapper.api.CurseWrapper;
-import io.github.noeppi_noeppi.tools.cursewrapper.api.request.FileFilter;
-import io.github.noeppi_noeppi.tools.cursewrapper.api.response.FileInfo;
-import io.github.noeppi_noeppi.tools.cursewrapper.api.response.ModLoader;
-import io.github.noeppi_noeppi.tools.cursewrapper.api.response.ProjectInfo;
-import io.github.noeppi_noeppi.tools.cursewrapper.api.response.ReleaseType;
 import org.apache.commons.lang3.tuple.Pair;
 import org.moddingx.cfupdatechecker.cache.FileCache;
 import org.moddingx.cfupdatechecker.version.VersionResolver;
+import org.moddingx.cursewrapper.api.CurseWrapper;
+import org.moddingx.cursewrapper.api.request.FileFilter;
+import org.moddingx.cursewrapper.api.response.FileInfo;
+import org.moddingx.cursewrapper.api.response.ModLoader;
+import org.moddingx.cursewrapper.api.response.ProjectInfo;
+import org.moddingx.cursewrapper.api.response.ReleaseType;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -51,7 +51,7 @@ public class UpdateCheckerGenerator {
             for (Pair<FileInfo, String> pair : files) {
                 FileInfo file = pair.getLeft();
                 String version = pair.getRight();
-                releases.addProperty(version, cache.changelog(new FileCache.FileKey(file.projectId(), file.fileId()), () -> {
+                releases.addProperty(version, cache.changelog(new FileCache.FileKey(file), () -> {
                     try {
                         return ChangelogProcessor.process(api.getChangelog(file.projectId(), file.fileId()));
                     } catch (IOException e) {

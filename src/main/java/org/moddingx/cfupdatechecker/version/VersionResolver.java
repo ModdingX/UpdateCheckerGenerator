@@ -4,10 +4,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.moandjiezana.toml.Toml;
-import io.github.noeppi_noeppi.tools.cursewrapper.api.response.FileInfo;
 import org.apache.commons.lang3.tuple.Pair;
 import org.moddingx.cfupdatechecker.Util;
 import org.moddingx.cfupdatechecker.cache.FileCache;
+import org.moddingx.cursewrapper.api.response.FileInfo;
 
 import java.io.*;
 import java.lang.module.InvalidModuleDescriptorException;
@@ -31,7 +31,7 @@ public class VersionResolver {
     private static final Set<String> FILE_NAMES = FILE_RESOLVERS.stream().map(Map.Entry::getKey).collect(Collectors.toSet());
 
     public static Optional<String> getVersion(FileInfo file, FileCache cache) {
-        String resolved = cache.version(new FileCache.FileKey(file.projectId(), file.fileId()), () -> {
+        String resolved = cache.version(new FileCache.FileKey(file), () -> {
             try {
                 return getVersionFromMetadata(file);
             } catch (Exception e) {

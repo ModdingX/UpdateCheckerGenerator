@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import org.moddingx.cfupdatechecker.Util;
+import org.moddingx.cursewrapper.api.response.FileInfo;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -116,5 +117,8 @@ public class FileCache {
 
     public record FileKey(int projectId, int fileId) {
 
+        public FileKey(FileInfo fileInfo) {
+            this(fileInfo.projectId(), fileInfo.fileId());
+        }
     }
 }
