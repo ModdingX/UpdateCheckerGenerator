@@ -10,6 +10,7 @@ import joptsimple.util.PathProperties;
 import org.apache.commons.lang3.tuple.Pair;
 import org.moddingx.cfupdatechecker.cache.FileCache;
 import org.moddingx.cursewrapper.api.CurseWrapper;
+import org.moddingx.cursewrapper.api.RequestException;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -28,8 +29,8 @@ public class Main {
         ArgumentAcceptingOptionSpec<Path> specDir = options.acceptsAll(List.of("d", "dir", "directory"), "Output directory.").withRequiredArg().withValuesConvertedBy(new PathConverter());
         ArgumentAcceptingOptionSpec<Path> specCache = options.acceptsAll(List.of("f", "cache"), "Cache file to use.").withRequiredArg().withValuesConvertedBy(new PathConverter());
         try {
-            OptionSet set = options.parse(args);
-
+//            OptionSet set = options.parse(args);
+            OptionSet set = options.parse("-c", "C:\\Coding\\Java\\ModdingX\\CfUpdateChecker\\config.txt", "-d", "C:\\Coding\\Java\\ModdingX\\CfUpdateChecker\\output", "-f", "C:\\Coding\\Java\\ModdingX\\CfUpdateChecker\\cache.json");
             if (!set.has(specCfg) || !set.has(specDir)) {
                 options.printHelpOn(System.err);
                 System.exit(0);
@@ -38,7 +39,7 @@ public class Main {
             Stream<String> projectIdStrings = Files.readAllLines(set.valueOf(specCfg)).stream().map(str -> str.contains("#") ? str.substring(0, str.indexOf('#')) : str).map(String::strip).filter(str -> !str.isEmpty()).filter(str -> {
                 try {
                     Integer.parseInt(str);
-                    return false;
+                    return true;
                 } catch (NumberFormatException e) {
                     throw new IllegalStateException("Invalid integer for project id: " + str);
                 }
@@ -54,15 +55,14 @@ public class Main {
             projectIdStrings.forEach(idString -> {
                 int projectId = Integer.parseInt(idString);
                 try {
-                    Pair<String, JsonObject> pair = UpdateCheckerGenerator.generateUpdateChecker(api, projectId, cache);
-                    Path path = basePath.resolve(pair.getLeft() + ".json");
-                    try (Writer writer = Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-                        writer.write(Util.GSON.toJson(pair.getRight()) + "\n");
-                    } catch (IOException e) {
-
+                    for (int i = 0; i < 10; i++) {
+                        if (generate(api, cache, basePath, projectId)) {
+                            break;
+                        }
+                        System.out.println("Failed " + ++i + " time(s)");
                     }
                 } catch (IOException e) {
-
+                    throw new RuntimeException(e);
                 }
             });
 
@@ -71,6 +71,19 @@ public class Main {
             System.err.println("Option exception: " + e.getMessage());
             options.printHelpOn(System.err);
             System.exit(0);
+        }
+    }
+
+    private static boolean generate(CurseWrapper api, FileCache cache, Path basePath, int projectId) throws IOException {
+        try {
+            Pair<String, JsonObject> pair = UpdateCheckerGenerator.generateUpdateChecker(api, projectId, cache);
+            Path path = basePath.resolve(pair.getLeft() + ".json");
+            Writer writer = Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            writer.write(Util.GSON.toJson(pair.getRight()) + "\n");
+            writer.close();
+            return true;
+        } catch (RequestException e) {
+            return false;
         }
     }
 }

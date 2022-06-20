@@ -16,6 +16,7 @@ repositories {
 dependencies {
     implementation 'org.moddingx:CurseWrapper:2.1'
     implementation 'org.apache.commons:commons-text:1.9'
+    implementation 'commons-io:commons-io:2.11.0'
     implementation 'com.google.code.gson:gson:2.9.0'
     implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
     implementation 'org.jsoup:jsoup:1.14.3'

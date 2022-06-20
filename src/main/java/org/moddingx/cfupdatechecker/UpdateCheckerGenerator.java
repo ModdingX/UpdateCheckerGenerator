@@ -13,6 +13,7 @@ import org.moddingx.cursewrapper.api.response.ProjectInfo;
 import org.moddingx.cursewrapper.api.response.ReleaseType;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public class UpdateCheckerGenerator {
         ProjectInfo project = api.getProject(projectId);
         System.out.println("Generating version checker for " + project.slug());
 
-        List<FileInfo> filesSorted = api.getFiles(projectId, FileFilter.loader(ModLoader.FORGE));
+        List<FileInfo> filesSorted = new ArrayList<>(api.getFiles(projectId, FileFilter.loader(ModLoader.FORGE)));
         filesSorted.sort(Comparator.comparing(FileInfo::fileDate).reversed());
         List<String> allGameVersions = filesSorted.stream().flatMap(info -> info.gameVersions().stream()).sorted().toList();
 

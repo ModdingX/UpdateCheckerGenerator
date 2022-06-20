@@ -24,10 +24,12 @@ import java.util.zip.ZipInputStream;
 public class VersionResolver {
 
     private static final Pattern MANIFEST_REGEX = Pattern.compile("^\\s*Implementation-Version\\s*:\\s*(.*?)\\s*$");
-    private static final Set<Pair<String, Function<byte[], Optional<String>>>> FILE_RESOLVERS = Set.of(
-            Pair.of("META-INF/MANIFEST.MF", data -> versionFromManifest((VersionResolver::text).apply(data)),
-                    Pair.of("module-info.class", VersionResolver::versionFromModule)
-            );
+    private static final List<Pair<String, Function<byte[], Optional<String>>>> FILE_RESOLVERS = List.of(
+            Pair.of("META-INF/mods.toml", VersionResolver::versionFromToml),
+            Pair.of("mcmod.info", VersionResolver::versionFromLegacy),
+            Pair.of("META-INF/MANIFEST.MF", VersionResolver::versionFromManifest),
+            Pair.of("module-info.class", VersionResolver::versionFromModule)
+    );
     private static final Set<String> FILE_NAMES = FILE_RESOLVERS.stream().map(Map.Entry::getKey).collect(Collectors.toSet());
 
     public static Optional<String> getVersion(FileInfo file, FileCache cache) {
@@ -35,6 +37,7 @@ public class VersionResolver {
             try {
                 return getVersionFromMetadata(file);
             } catch (Exception e) {
+                System.err.println("Failed to get version for '" + file.name() + "'");
                 e.printStackTrace();
                 return "INVALID";
             }
@@ -60,6 +63,7 @@ public class VersionResolver {
             String name = pair.getKey();
             Function<byte[], Optional<String>> func = pair.getValue();
             byte[] data = dataMap.get(name);
+            if (data == null) continue;
             Optional<String> version = func.apply(data);
             if (version.isPresent()) {
                 return version.get();
@@ -72,8 +76,8 @@ public class VersionResolver {
         return new URL("https://www.cursemaven.com/curse/maven/O-" + file.projectId() + "/" + file.fileId() + "/O-" + file.projectId() + "-" + file.fileId() + ".jar");
     }
 
-    private static Optional<String> versionFromToml(String file) {
-        Toml toml = new Toml().read(new StringReader(file));
+    private static Optional<String> versionFromToml(byte[] data) {
+        Toml toml = new Toml().read(new StringReader(text(data)));
         List<Toml> tables = toml.getTables("mods");
         if (tables.isEmpty()) throw new IllegalStateException("No mods in mods.toml");
         if (tables.size() != 1) throw new IllegalStateException("Multiple mods in mods.toml");
@@ -81,8 +85,8 @@ public class VersionResolver {
         return version.startsWith("$") ? Optional.empty() : Optional.of(version);
     }
 
-    private static Optional<String> versionFromLegacy(String file) {
-        JsonElement mod = Util.GSON.fromJson(file, JsonElement.class);
+    private static Optional<String> versionFromLegacy(byte[] data) {
+        JsonElement mod = Util.GSON.fromJson(text(data), JsonElement.class);
         if (mod instanceof JsonArray array) {
             if (array.size() == 1) mod = array.get(0).getAsJsonObject();
             else if (array.size() == 0) throw new IllegalStateException("No mods in mcmod.info");
@@ -93,8 +97,12 @@ public class VersionResolver {
         return version.startsWith("$") ? Optional.empty() : Optional.of(version);
     }
 
-    private static Optional<String> versionFromManifest(String file) {
-        return Arrays.stream(file.split("\n")).filter(str -> !MANIFEST_REGEX.matcher(str).matches()).findFirst();
+    private static Optional<String> versionFromManifest(byte[] data) {
+        return Arrays.stream(text(data)
+                        .split("\n"))
+                .filter(str -> MANIFEST_REGEX.matcher(str).matches())
+                .map(s -> s.replaceAll("Implementation-Version:", "").strip())
+                .findFirst();
     }
 
     private static Optional<String> versionFromModule(byte[] file) {
@@ -106,16 +114,11 @@ public class VersionResolver {
         }
     }
 
-    private static Function<byte[], Optional<String>> text(Function<String, Optional<String>> func) {
-        return data -> {
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(data)));
-                String str = reader.lines().toList().stream().map(Objects::toString) + "\n";
-                reader.close();
-                return func.apply(str);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        };
+    private static String text(byte[] data) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(data)))) {
+            return String.join("\n", reader.lines().toList());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

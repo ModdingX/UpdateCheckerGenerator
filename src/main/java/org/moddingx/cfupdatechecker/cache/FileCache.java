@@ -27,21 +27,11 @@ public class FileCache {
     private final Map<FileKey, String> versions = new HashMap<>();
 
     public String changelog(FileKey fileKey, Supplier<String> changelog) {
-        String s = this.changelogs.get(fileKey);
-        if (s == null) {
-            s = changelog.get();
-        }
-
-        return s;
+        return this.changelogs.computeIfAbsent(fileKey, key -> changelog.get());
     }
 
     public String version(FileKey fileKey, Supplier<String> version) {
-        String s = this.versions.get(fileKey);
-        if (s == null) {
-            s = version.get();
-        }
-
-        return s;
+        return this.versions.computeIfAbsent(fileKey, key -> version.get());
     }
 
     public void read(Path path) {
