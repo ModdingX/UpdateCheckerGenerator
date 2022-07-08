@@ -29,8 +29,7 @@ public class Main {
         ArgumentAcceptingOptionSpec<Path> specDir = options.acceptsAll(List.of("d", "dir", "directory"), "Output directory.").withRequiredArg().withValuesConvertedBy(new PathConverter());
         ArgumentAcceptingOptionSpec<Path> specCache = options.acceptsAll(List.of("f", "cache"), "Cache file to use.").withRequiredArg().withValuesConvertedBy(new PathConverter());
         try {
-//            OptionSet set = options.parse(args);
-            OptionSet set = options.parse("-p", "modrinth", "-c", "/tmp/cfuc/m_cfg.txt", "-d", "/tmp/cfuc/m", "-f", "/tmp/cfuc/m.json");
+            OptionSet set = options.parse(args);
             if (!set.has(specPlatform) || !set.has(specCfg) || !set.has(specDir)) {
                 if (!set.has(specPlatform)) System.err.println("Missing required option: " + specPlatform);
                 if (!set.has(specCfg)) System.err.println("Missing required option: " + specCfg);
