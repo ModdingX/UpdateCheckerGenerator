@@ -1,12 +1,12 @@
-package org.moddingx.cfupdatechecker.cache;
+package org.moddingx.updatecheckergenerator.cache;
 
 import com.google.common.collect.Streams;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import org.moddingx.cfupdatechecker.Util;
-import org.moddingx.cursewrapper.api.response.FileInfo;
+import org.moddingx.updatecheckergenerator.UpdateCheckerGenerator;
+import org.moddingx.updatecheckergenerator.platform.FileKey;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -16,13 +16,13 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class FileCache {
 
     public static final int VERSION = 4;
+    
     private final Map<FileKey, String> changelogs = new HashMap<>();
     private final Map<FileKey, String> versions = new HashMap<>();
 
@@ -39,7 +39,7 @@ public class FileCache {
         this.versions.clear();
         if (Files.exists(path)) {
             try (Reader reader = Files.newBufferedReader(path)) {
-                JsonObject json = Util.INTERNAL.fromJson(reader, JsonObject.class);
+                JsonObject json = UpdateCheckerGenerator.INTERNAL.fromJson(reader, JsonObject.class);
                 int cacheVersion = json.get("version").getAsInt();
                 if (cacheVersion == FileCache.VERSION) {
                     this.changelogs.putAll(this.readMap(json.get("changelogs")));
@@ -53,18 +53,18 @@ public class FileCache {
         }
     }
 
-    private Map.Entry<FileKey, String> readFile(JsonObject data) {
-        int projectId = data.get("project").getAsInt();
-        int fileId = data.get("file").getAsInt();
-        String changelog = data.get("value").getAsString();
-        return Map.entry(new FileKey(projectId, fileId), changelog);
-    }
-
     private Map<FileKey, String> readMap(JsonElement data) {
         return Streams.stream(data.getAsJsonArray())
                 .map(JsonElement::getAsJsonObject)
                 .map(this::readFile)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private Map.Entry<FileKey, String> readFile(JsonObject data) {
+        String projectId = data.get("project").getAsString();
+        String fileId = data.get("file").getAsString();
+        String changelog = data.get("value").getAsString();
+        return Map.entry(new FileKey(projectId, fileId), changelog);
     }
 
     public void write(Path path) {
@@ -75,40 +75,24 @@ public class FileCache {
                 json.addProperty("version", FileCache.VERSION);
                 json.add("changelogs", this.writeMap(this.changelogs));
                 json.add("versions", this.writeMap(this.versions));
-                writer.write(Util.INTERNAL.toJson(json) + "\n");
+                writer.write(UpdateCheckerGenerator.INTERNAL.toJson(json) + "\n");
             }
         } catch (IOException e) {
             System.out.println("Failed to write file cache: " + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
     }
 
-    private JsonArray array(Set<JsonElement> elements) {
+    private JsonElement writeMap(Map<FileKey, String> map) {
         JsonArray array = new JsonArray();
-        elements.forEach(array::add);
+        map.entrySet().forEach(entry -> array.add(this.writeFile(entry)));
         return array;
     }
 
     private JsonObject writeFile(Map.Entry<FileKey, String> entry) {
         JsonObject data = new JsonObject();
-        data.addProperty("project", entry.getKey().projectId);
-        data.addProperty("file", entry.getKey().fileId);
+        data.addProperty("project", entry.getKey().projectId());
+        data.addProperty("file", entry.getKey().fileId());
         data.addProperty("value", entry.getValue());
         return data;
-    }
-
-    private JsonElement writeMap(Map<FileKey, String> map) {
-        JsonArray array = new JsonArray();
-        map.entrySet().forEach(entry -> {
-            array.add(this.writeFile(entry));
-        });
-
-        return array;
-    }
-
-    public record FileKey(int projectId, int fileId) {
-
-        public FileKey(FileInfo fileInfo) {
-            this(fileInfo.projectId(), fileInfo.fileId());
-        }
     }
 }

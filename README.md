@@ -1,9 +1,10 @@
-# CfUpdateChecker
+# UpdateCheckerGenerator
 
-A tool to generate [Forge Version Checker](https://forge.gemwire.uk/wiki/Version_Checker) jsons based on the data on [CurseForge](https://www.curseforge.com/minecraft/mc-mods).
+A tool to generate [Forge Version Checker](https://forge.gemwire.uk/wiki/Version_Checker) jsons based on the data on [CurseForge](https://www.curseforge.com/minecraft/mc-mods) or [Modrinth](https://modrinth.com/mods).
 
 It accepts the following options:
 
+  * `-p`, `--platform`: Either `curse` or `modrinth`.
   * `-c`, `--config`: A file containing project ids to generate version checker jsons for. One project id per line. Comments start with `#`
   * `-d`, `--dir`, `--directory`: The output directory to generate the version checker in.
   * `-f`, `--cache`: A cache file to store changelogs and version data from files, to reduce amount of requests to the API.
