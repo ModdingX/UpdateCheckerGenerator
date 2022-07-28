@@ -24,7 +24,7 @@ dependencies {
     implementation 'com.google.guava:guava:31.1-jre'
 }
 
-application.mainClassName = 'org.moddingx.cfupdatechecker.Main'
+application.mainClassName = 'org.moddingx.updatecheckergenerator.Main'
 
 jar {
     manifest {
