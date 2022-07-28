@@ -129,7 +129,7 @@ public class ModrinthPlatform implements ModdingPlatform<ModrinthVersion> {
         URI req = BASE_URL.resolve(routeStr + queryStr);
         try {
             return client.<Either<JsonElement, IOException>>send(HttpRequest.newBuilder().GET()
-                            .uri(BASE_URL.resolve(route + queryStr))
+                            .uri(req)
                             .header("Accept", "application/json")
                             .header("User-Agent", "ModdingX/UpdateCheckerGenerator")
                             .build(), 
