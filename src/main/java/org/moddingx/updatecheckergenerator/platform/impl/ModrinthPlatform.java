@@ -2,12 +2,12 @@ package org.moddingx.updatecheckergenerator.platform.impl;
 
 import com.google.common.collect.Streams;
 import com.google.gson.*;
+import org.moddingx.launcherlib.util.Either;
 import org.moddingx.updatecheckergenerator.UpdateCheckerGenerator;
 import org.moddingx.updatecheckergenerator.platform.FileKey;
 import org.moddingx.updatecheckergenerator.platform.ModdingPlatform;
 import org.moddingx.updatecheckergenerator.platform.ProjectData;
 import org.moddingx.updatecheckergenerator.platform.ResolvableVersion;
-import org.moddingx.updatecheckergenerator.util.Either;
 
 import java.io.IOException;
 import java.net.URI;
@@ -144,7 +144,7 @@ public class ModrinthPlatform implements ModdingPlatform<ModrinthVersion> {
                             return HttpResponse.BodySubscribers.replacing(Either.right(new IOException("HTTP Status Code: " + resp.statusCode())));
                         }
                     }
-            ).body().getOrThrowChecked(Function.identity(), Function.identity());
+            ).body().getOrThrow(Function.identity(), Function.identity());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException("Interrupted", e);
