@@ -23,7 +23,7 @@ public class CursePlatform implements ModdingPlatform<FileInfo> {
     private final CurseWrapper api;
 
     public CursePlatform() {
-        this.api = new CurseWrapper(URI.create("https://curse.melanx.de"));
+        this.api = new CurseWrapper(URI.create("https://curse.moddingx.org"));
     }
 
     //new ArrayList<>(api.getFiles(projectId, FileFilter.loader(ModLoader.FORGE)));
