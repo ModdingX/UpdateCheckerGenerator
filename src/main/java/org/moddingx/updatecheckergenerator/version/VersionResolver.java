@@ -103,7 +103,7 @@ public class VersionResolver {
         List<Toml> tables = toml.getTables("mods");
         if (tables.isEmpty()) throw new IllegalStateException("No mods in mods.toml");
         if (tables.size() != 1) throw new IllegalStateException("Multiple mods in mods.toml");
-        String version = tables.get(0).getString("version").strip();
+        String version = tables.getFirst().getString("version").strip();
         if (version.startsWith("$")) throw new IllegalStateException("Version variable in mods.toml");
         return version;
     }

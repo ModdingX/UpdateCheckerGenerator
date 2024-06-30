@@ -13,7 +13,7 @@ import org.moddingx.updatecheckergenerator.platform.ResolvableVersion;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -25,9 +25,6 @@ public class CursePlatform implements ModdingPlatform<FileInfo> {
     public CursePlatform() {
         this.api = new CurseWrapper(URI.create("https://curse.moddingx.org"));
     }
-
-    //new ArrayList<>(api.getFiles(projectId, FileFilter.loader(ModLoader.FORGE)));
-
 
     @Override
     public ProjectData project(String projectId) throws IOException {
@@ -72,7 +69,11 @@ public class CursePlatform implements ModdingPlatform<FileInfo> {
 
     @Override
     public ResolvableVersion version(FileInfo file) throws IOException {
-        return ResolvableVersion.resolveBy(this, file, new URL("https://www.cursemaven.com/curse/maven/O-" + file.projectId() + "/" + file.fileId() + "/O-" + file.projectId() + "-" + file.fileId() + ".jar"));
+        try {
+            return ResolvableVersion.resolveBy(this, file, new URI("https://www.cursemaven.com/curse/maven/O-" + file.projectId() + "/" + file.fileId() + "/O-" + file.projectId() + "-" + file.fileId() + ".jar").toURL());
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
     }
 
     private int validateProjectId(String projectId) throws IOException {

@@ -29,7 +29,7 @@ public class ModrinthPlatform implements ModdingPlatform<ModrinthVersion> {
     private final HttpClient client;
 
     public ModrinthPlatform() {
-        client = HttpClient.newHttpClient();
+        client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build();
     }
 
     @Override
