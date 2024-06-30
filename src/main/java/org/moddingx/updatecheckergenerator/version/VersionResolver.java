@@ -3,12 +3,12 @@ package org.moddingx.updatecheckergenerator.version;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.moandjiezana.toml.Toml;
+import jakarta.annotation.Nullable;
 import org.moddingx.updatecheckergenerator.UpdateCheckerGenerator;
 import org.moddingx.updatecheckergenerator.cache.FileCache;
 import org.moddingx.updatecheckergenerator.platform.FileKey;
 import org.moddingx.updatecheckergenerator.platform.ModdingPlatform;
 
-import javax.annotation.Nullable;
 import java.io.*;
 import java.lang.module.InvalidModuleDescriptorException;
 import java.lang.module.ModuleDescriptor;
