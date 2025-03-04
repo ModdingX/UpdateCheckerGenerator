@@ -11,6 +11,7 @@ It accepts the following options:
 
 The version of a file is discovered by downloading it and parsing its contents. CfUpdateChecker looks for version information in this order:
 
+  * A `META-INF/neoforge.mods.toml` file that contains exactly one mod and a version value that does not start with a dollar sign.
   * A `META-INF/mods.toml` file that contains exactly one mod and a version value that does not start with a dollar sign.
   * A `mcmod.info` file that contains exactly one mod and a version value that does not start with a dollar sign.
   * A `META-INF/MANIFEST.MF` file with the property `Implementation-Version`

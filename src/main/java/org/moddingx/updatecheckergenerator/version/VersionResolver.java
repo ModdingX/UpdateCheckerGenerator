@@ -25,13 +25,14 @@ public class VersionResolver {
 
     private static final Pattern MANIFEST_REGEX = Pattern.compile("^\\s*Implementation-Version\\s*:\\s*(.*?)\\s*$");
 
+    private static final String MOD_INFO_NEOFORGE_TOML = "META-INF/neoforge.mods.toml";
     private static final String MOD_INFO_TOML = "META-INF/mods.toml";
     private static final String MOD_INFO_LEGACY = "mcmod.info";
     private static final String JAR_MANIFEST = "META-INF/MANIFEST.MF";
     private static final String MODULE_DESCRIPTOR = "module-info.class";
     
     private static final Set<String> FILE_NAMES = Set.of(
-            MOD_INFO_TOML, MOD_INFO_LEGACY, JAR_MANIFEST, MODULE_DESCRIPTOR
+            MOD_INFO_NEOFORGE_TOML, MOD_INFO_TOML, MOD_INFO_LEGACY, JAR_MANIFEST, MODULE_DESCRIPTOR
     );
     
     public static <T> Optional<String> getVersion(ModdingPlatform<T> platform, T file, URL downloadURL, FileCache cache) {
@@ -65,7 +66,10 @@ public class VersionResolver {
         
         RuntimeException collect = new RuntimeException("Could not resolve version");
         
-        String ver = processStrategy(dataMap, MOD_INFO_TOML, collect, VersionResolver::versionFromToml);
+        String ver = processStrategy(dataMap, MOD_INFO_NEOFORGE_TOML, collect, data -> VersionResolver.versionFromToml(data, MOD_INFO_NEOFORGE_TOML));
+        if (ver != null) return ver;
+
+        ver = processStrategy(dataMap, MOD_INFO_TOML, collect, data -> VersionResolver.versionFromToml(data, MOD_INFO_TOML));
         if (ver != null) return ver;
         
         ver = processStrategy(dataMap, MOD_INFO_LEGACY, collect, VersionResolver::versionFromLegacy);
@@ -98,13 +102,13 @@ public class VersionResolver {
         }
     }
 
-    private static String versionFromToml(byte[] data) {
+    private static String versionFromToml(byte[] data, String fileName) {
         Toml toml = new Toml().read(new StringReader(text(data)));
         List<Toml> tables = toml.getTables("mods");
-        if (tables.isEmpty()) throw new IllegalStateException("No mods in mods.toml");
-        if (tables.size() != 1) throw new IllegalStateException("Multiple mods in mods.toml");
+        if (tables.isEmpty()) throw new IllegalStateException("No mods in " + fileName);
+        if (tables.size() != 1) throw new IllegalStateException("Multiple mods in " + fileName);
         String version = tables.getFirst().getString("version").strip();
-        if (version.startsWith("$")) throw new IllegalStateException("Version variable in mods.toml");
+        if (version.startsWith("$")) throw new IllegalStateException("Version variable in " + fileName);
         return version;
     }
 
