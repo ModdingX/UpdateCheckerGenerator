@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 public class FileCache {
 
-    public static final int VERSION = 4;
+    public static final int VERSION = 5;
     
     private final Map<FileKey, String> changelogs = new HashMap<>();
     private final Map<FileKey, String> versions = new HashMap<>();
