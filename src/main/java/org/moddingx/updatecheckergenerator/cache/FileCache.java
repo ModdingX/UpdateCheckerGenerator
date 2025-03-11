@@ -48,8 +48,8 @@ public class FileCache {
         if (Files.exists(path)) {
             try (Reader reader = Files.newBufferedReader(path)) {
                 JsonObject json = UpdateCheckerGenerator.INTERNAL.fromJson(reader, JsonObject.class);
-                int cacheVersion = json.get("version").getAsInt();
-                String cachePlatform = json.get("platform").getAsString();
+                int cacheVersion = json.has("version") ? json.get("version").getAsInt() : 0;
+                String cachePlatform = json.has("platform") ? json.get("platform").getAsString() : null;
                 if (cacheVersion == FileCache.VERSION && Objects.equals(cachePlatform, this.platform.name().toLowerCase(Locale.ROOT))) {
                     this.changelogs.putAll(this.readMap(json.get("changelogs")));
                     this.versions.putAll(this.readMap(json.get("versions")));
