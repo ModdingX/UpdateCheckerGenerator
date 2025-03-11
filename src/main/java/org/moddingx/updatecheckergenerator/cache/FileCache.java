@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import org.moddingx.updatecheckergenerator.Platform;
 import org.moddingx.updatecheckergenerator.UpdateCheckerGenerator;
 import org.moddingx.updatecheckergenerator.platform.FileKey;
 
@@ -15,7 +16,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -23,8 +26,13 @@ public class FileCache {
 
     public static final int VERSION = 5;
     
+    private final Platform platform;
     private final Map<FileKey, String> changelogs = new HashMap<>();
     private final Map<FileKey, String> versions = new HashMap<>();
+
+    public FileCache(Platform platform) {
+        this.platform = platform;
+    }
 
     public String changelog(FileKey fileKey, Supplier<String> changelog) {
         return this.changelogs.computeIfAbsent(fileKey, key -> changelog.get());
@@ -41,7 +49,8 @@ public class FileCache {
             try (Reader reader = Files.newBufferedReader(path)) {
                 JsonObject json = UpdateCheckerGenerator.INTERNAL.fromJson(reader, JsonObject.class);
                 int cacheVersion = json.get("version").getAsInt();
-                if (cacheVersion == FileCache.VERSION) {
+                String cachePlatform = json.get("platform").getAsString();
+                if (cacheVersion == FileCache.VERSION && Objects.equals(cachePlatform, this.platform.name().toLowerCase(Locale.ROOT))) {
                     this.changelogs.putAll(this.readMap(json.get("changelogs")));
                     this.versions.putAll(this.readMap(json.get("versions")));
                 }
@@ -73,6 +82,7 @@ public class FileCache {
             try (Writer writer = Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
                 JsonObject json = new JsonObject();
                 json.addProperty("version", FileCache.VERSION);
+                json.addProperty("platform", this.platform.name().toLowerCase(Locale.ROOT));
                 json.add("changelogs", this.writeMap(this.changelogs));
                 json.add("versions", this.writeMap(this.versions));
                 writer.write(UpdateCheckerGenerator.INTERNAL.toJson(json) + "\n");

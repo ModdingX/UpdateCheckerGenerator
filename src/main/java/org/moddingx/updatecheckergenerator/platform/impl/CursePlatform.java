@@ -33,8 +33,12 @@ public class CursePlatform implements ModdingPlatform<FileInfo> {
     }
 
     @Override
-    public List<FileInfo> listFiles(String projectId) throws IOException {
-        return api.getFiles(validateProjectId(projectId), FileFilter.loader(ModLoader.FORGE));
+    public List<FileInfo> listFiles(String projectId, Set<org.moddingx.updatecheckergenerator.ModLoader> loaders) throws IOException {
+        ModLoader[] curseLoaders = loaders.stream().map(loader -> switch (loader) {
+            case FORGE -> ModLoader.FORGE;
+            case NEOFORGE -> ModLoader.NEOFORGE;
+        }).toArray(ModLoader[]::new);
+        return api.getFiles(validateProjectId(projectId), FileFilter.loader(curseLoaders));
     }
 
     @Override
