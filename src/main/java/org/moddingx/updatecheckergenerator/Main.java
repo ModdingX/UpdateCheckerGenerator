@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class Main {
@@ -29,6 +30,7 @@ public class Main {
         OptionSpec<Path> specDir = options.acceptsAll(List.of("d", "dir", "directory"), "Output directory.").withRequiredArg().withValuesConvertedBy(new PathConverter());
         OptionSpec<Path> specCache = options.acceptsAll(List.of("f", "cache"), "Cache file to use.").withRequiredArg().withValuesConvertedBy(new PathConverter());
         OptionSpec<Void> specPretty = options.acceptsAll(List.of("pretty"), "Pretty-print the output json.");
+        OptionSpec<ModLoader> specLoader = options.acceptsAll(List.of("l", "loader"), "Query file for the provided modloaders.").withRequiredArg().withValuesConvertedBy(ModLoader.ARG);
         try {
             OptionSet set = options.parse(args);
             if (!set.has(specPlatform) || !set.has(specCfg) || !set.has(specDir)) {
@@ -37,8 +39,11 @@ public class Main {
                 if (!set.has(specDir)) System.err.println("Missing required option: " + specDir);
                 options.printHelpOn(System.err);
                 System.exit(0);
+                return;
             }
 
+            Set<ModLoader> loaders = set.valuesOf(specLoader).isEmpty() ? Set.of(ModLoader.values()) : Set.copyOf(set.valuesOf(specLoader));
+            
             Stream<String> projectIds = Files.readAllLines(set.valueOf(specCfg)).stream()
                     .map(str -> str.contains("#") ? str.substring(0, str.indexOf('#')) : str)
                     .map(String::strip)
@@ -47,16 +52,17 @@ public class Main {
             Path basePath = set.valueOf(specDir);
             if (!Files.exists(basePath)) Files.createDirectories(basePath);
 
-            FileCache cache = new FileCache();
-            if (set.has(specCache)) cache.read(set.valueOf(specCache));
-
             boolean pretty = set.has(specPretty);
+            Platform platformKey = set.valueOf(specPlatform);
+
+            FileCache cache = new FileCache(platformKey);
+            if (set.has(specCache)) cache.read(set.valueOf(specCache));
             
-            ModdingPlatform<?> platform = set.valueOf(specPlatform).create();
+            ModdingPlatform<?> platform = platformKey.create();
             projectIds.forEach(projectId -> {
                 try {
                     for (int i = 0; i < 10; i++) {
-                        if (generate(platform, cache, basePath, projectId, pretty)) {
+                        if (generate(platform, loaders, cache, basePath, projectId, pretty)) {
                             break;
                         }
                         System.out.println("Failed " + (i + 1) + " time(s)");
@@ -74,9 +80,9 @@ public class Main {
         }
     }
 
-    private static boolean generate(ModdingPlatform<?> platform, FileCache cache, Path basePath, String projectId, boolean pretty) throws IOException {
+    private static boolean generate(ModdingPlatform<?> platform, Set<ModLoader> loaders, FileCache cache, Path basePath, String projectId, boolean pretty) throws IOException {
         try {
-            Pair<String, JsonObject> pair = UpdateCheckerGenerator.generateUpdateChecker(platform, projectId, cache);
+            Pair<String, JsonObject> pair = UpdateCheckerGenerator.generateUpdateChecker(platform, loaders, projectId, cache);
             Path path = basePath.resolve(pair.getLeft() + ".json");
             Writer writer = Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             writer.write((pretty ? UpdateCheckerGenerator.GSON : UpdateCheckerGenerator.INTERNAL).toJson(pair.getRight()) + "\n");

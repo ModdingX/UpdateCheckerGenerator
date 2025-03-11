@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public enum Platform {
     
-    CURSE(CursePlatform::new),
+    CURSEFORGE(CursePlatform::new),
     MODRINTH(ModrinthPlatform::new);
     
     public static final EnumConverter<Platform> ARG = new EnumConverter<>(Platform.class) {

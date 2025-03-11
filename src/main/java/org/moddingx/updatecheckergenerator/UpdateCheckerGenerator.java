@@ -9,10 +9,7 @@ import org.moddingx.updatecheckergenerator.platform.ModdingPlatform;
 import org.moddingx.updatecheckergenerator.platform.ProjectData;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class UpdateCheckerGenerator {
 
@@ -32,11 +29,11 @@ public class UpdateCheckerGenerator {
         INTERNAL = builder.create();
     }
 
-    public static <T> Pair<String, JsonObject> generateUpdateChecker(ModdingPlatform<T> platform, String projectId, FileCache cache) throws IOException {
+    public static <T> Pair<String, JsonObject> generateUpdateChecker(ModdingPlatform<T> platform, Set<ModLoader> loaders, String projectId, FileCache cache) throws IOException {
         ProjectData project = platform.project(projectId);
-        System.out.println("Generating version checker for " + project.slug());
+        System.out.println("Generating update checker for " + project.slug());
 
-        List<T> filesSorted = new ArrayList<>(platform.listFiles(projectId));
+        List<T> filesSorted = new ArrayList<>(platform.listFiles(projectId, loaders));
         filesSorted.sort(Comparator.comparing(platform::fileDate));
         List<String> allGameVersions = filesSorted.stream().flatMap(file -> platform.gameVersions(file).stream()).sorted().toList();
 

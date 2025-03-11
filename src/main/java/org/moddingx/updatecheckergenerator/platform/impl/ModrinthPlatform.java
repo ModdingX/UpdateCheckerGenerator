@@ -3,6 +3,7 @@ package org.moddingx.updatecheckergenerator.platform.impl;
 import com.google.common.collect.Streams;
 import com.google.gson.*;
 import org.moddingx.launcherlib.util.Either;
+import org.moddingx.updatecheckergenerator.ModLoader;
 import org.moddingx.updatecheckergenerator.UpdateCheckerGenerator;
 import org.moddingx.updatecheckergenerator.platform.FileKey;
 import org.moddingx.updatecheckergenerator.platform.ModdingPlatform;
@@ -44,10 +45,12 @@ public class ModrinthPlatform implements ModdingPlatform<ModrinthVersion> {
     }
 
     @Override
-    public List<ModrinthVersion> listFiles(String projectId) throws IOException {
+    public List<ModrinthVersion> listFiles(String projectId, Set<ModLoader> loaders) throws IOException {
+        JsonArray loadersArray = new JsonArray();
+        for (ModLoader loader : loaders) loadersArray.add(loader.id);
         return withJson(() -> {
             JsonArray array = request("project/" + URLEncoder.encode(projectId, StandardCharsets.UTF_8) + "/version", Map.of(
-                    "loaders", "[\"forge\"]"
+                    "loaders", UpdateCheckerGenerator.INTERNAL.toJson(loadersArray)
             )).getAsJsonArray();
             List<ModrinthVersion> files = new ArrayList<>(array.size());
             for (JsonElement elem : array) {
